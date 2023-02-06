@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="ES分词器及文本搜索分析, clau&#39;s blog">
-    <meta name="description" content="前言工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好的优化搜索结">
+    <meta name="description" content="工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好的优化搜索结果，">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -319,7 +319,7 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1><span id="前言">前言</span></h1><p>工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好的优化搜索结果，有时会想去搞个自定义分词器；同时也对文本搜索的细节感到好奇。</p>
+                <p>工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好的优化搜索结果，有时会想去搞个自定义分词器；同时也对文本搜索的细节感到好奇。</p>
 <p>周末正好有空学习下，本篇blog，预计会对以下问题进行分析：</p>
 <ul>
 <li>我们搜索操作时，对于搜索引擎，流程分几步？</li>
@@ -327,7 +327,7 @@
 <li>ES有哪些常见分词器？如何自定义？</li>
 <li>match&#x2F;match_phrase&#x2F;match_phrase_prefix&#x2F;query_string区别？</li>
 </ul>
-<h1><span id="es文本解析的执行流程">ES文本解析的执行流程</span></h1><p>首先明确何时进行文本解析？有两个时机：</p>
+<h1 id="ES文本解析的执行流程"><a href="#ES文本解析的执行流程" class="headerlink" title="ES文本解析的执行流程"></a>ES文本解析的执行流程</h1><p>首先明确何时进行文本解析？有两个时机：</p>
 <ul>
 <li><p>文档往ES索引的时候</p>
 </li>
@@ -336,7 +336,7 @@
 </ul>
 <p>ES官方认为大多数场景，应配套使用同一种解析器，避免分词或者常规化处理时的不匹配。</p>
 <p>直接参考<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-overview.html">ES官网</a>，文本解析宏观上就分为两步，Tokenization和Normalization。</p>
-<h2><span id="tokenization">Tokenization</span></h2><blockquote>
+<h2 id="Tokenization"><a href="#Tokenization" class="headerlink" title="Tokenization"></a>Tokenization</h2><blockquote>
 <p>Analysis makes full-text search possible through <em>tokenization</em>: breaking a text down into smaller chunks, called <em>tokens</em>. In most cases, these tokens are individual words.</p>
 </blockquote>
 <p>很容易理解，就像程序编译需要先词法分析一样，分词打散再进行特征化处理是标准操作。</p>
@@ -345,7 +345,7 @@
 
 
 
-<h2><span id="normalization">Normalization</span></h2><p>这个常规化处理，就是解决大小写、单复数、同义词等同义场景问题的：</p>
+<h2 id="Normalization"><a href="#Normalization" class="headerlink" title="Normalization"></a>Normalization</h2><p>这个常规化处理，就是解决大小写、单复数、同义词等同义场景问题的：</p>
 <blockquote>
 <ul>
 <li>A search for <code>Quick</code> would not match <code>quick</code>, even though you likely want either term to match the other</li>
@@ -366,7 +366,7 @@
 <p>很简单，直接多加一个token即可，偷两张官网的图：</p>
 <p><img src="/.%5CES%E5%88%86%E8%AF%8D%E5%99%A8%E5%8F%8A%E6%96%87%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%88%86%E6%9E%90%5Ctoken-graph-qbf-synonym-ex.svg" alt="token-graph-qbf-synonym-ex"></p>
 <p><img src="/.%5CES%E5%88%86%E8%AF%8D%E5%99%A8%E5%8F%8A%E6%96%87%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%88%86%E6%9E%90%5Ctoken-graph-dns-synonym-ex.svg" alt="token-graph-dns-synonym-ex"></p>
-<h1><span id="常见es分词器">常见ES分词器</span></h1><h2><span id="char_group">char_group</span></h2><p>两个参数比较重要：</p>
+<h1 id="常见ES分词器"><a href="#常见ES分词器" class="headerlink" title="常见ES分词器"></a>常见ES分词器</h1><h2 id="char-group"><a href="#char-group" class="headerlink" title="char_group"></a>char_group</h2><p>两个参数比较重要：</p>
 <ul>
 <li>tokenize_on_chars：简单来说，就是分隔符</li>
 <li>max_token_length：最大长度，默认255，超过就会被split</li>
@@ -376,9 +376,9 @@
 
 
 
-<h2><span id="standard">standard</span></h2><p> 默认分词器，按词切分。对于大部分语言都适用（中文不行，会单字切分）</p>
+<h2 id="standard"><a href="#standard" class="headerlink" title="standard"></a>standard</h2><p> 默认分词器，按词切分。对于大部分语言都适用（中文不行，会单字切分）</p>
 <p>同样有max_token_length参数，这里不赘述了。例子直接看[ES官网]([Standard tokenizer | Elasticsearch Guide <a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-standard-tokenizer.html">8.6] | Elastic</a>)。</p>
-<h2><span id="ik_smartx2fik_max_word">ik_smart&#x2F;<strong>ik_max_word</strong></span></h2><p>这俩都是ik-analyzer这个解析器带的，是中文语境下最常用的分词器了。</p>
+<h2 id="ik-smart-x2F-ik-max-word"><a href="#ik-smart-x2F-ik-max-word" class="headerlink" title="ik_smart&#x2F;ik_max_word"></a>ik_smart&#x2F;<strong>ik_max_word</strong></h2><p>这俩都是ik-analyzer这个解析器带的，是中文语境下最常用的分词器了。</p>
 <p>ik_smart会做最粗粒度的拆分；已被分出的词语将不会再次被其它词语占有，而与之相反的，ik_max_word会将文本做最细粒度的拆分；尽可能多的拆分出词语。</p>
 <p>挺抽象的，什么叫不能被其他词语占有呢？我拿<code>联想是全球最大的笔记本厂商</code> 举例：</p>
 <ul>
@@ -386,7 +386,7 @@
 <li>ik_max_word: [“联想”, “是”, “全球”, “最大”, “的”, “笔记本”, “笔记”, “本厂”, “厂商”]</li>
 </ul>
 <p>例如笔记本和本厂，由于<code>本</code> 已经被笔记本占有，所以不会再拆除本厂了。</p>
-<h2><span id="path_hierarchy">path_hierarchy</span></h2><p>这个在路径匹配场景非常好用，使用也非常简单：</p>
+<h2 id="path-hierarchy"><a href="#path-hierarchy" class="headerlink" title="path_hierarchy"></a>path_hierarchy</h2><p>这个在路径匹配场景非常好用，使用也非常简单：</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 请求</span></span><br><span class="line">POST _analyze</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tokenizer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;path_hierarchy&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/one/two/three&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 响应</span></span><br><span class="line"><span class="punctuation">[</span> /one<span class="punctuation">,</span> /one/two<span class="punctuation">,</span> /one/two/three <span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
 
 <p>主要参数有已下4个：</p>
@@ -404,17 +404,17 @@
 
 
 
-<h1><span id="如何自定义分词器">如何自定义分词器</span></h1><p>先说一下，分词器这个词有些狭隘，应该是解析器，它包含了分词器组件，且允许0到多个。解析器分为三大组件：</p>
+<h1 id="如何自定义分词器"><a href="#如何自定义分词器" class="headerlink" title="如何自定义分词器"></a>如何自定义分词器</h1><p>先说一下，分词器这个词有些狭隘，应该是解析器，它包含了分词器组件，且允许0到多个。解析器分为三大组件：</p>
 <blockquote>
 <p>An <em>analyzer</em> — whether built-in or custom — is just a package which contains three lower-level building blocks: <em>character filters</em>, <em>tokenizers</em>, and <em>token filters</em>.</p>
 </blockquote>
 <p>character filters，负责字符级别的替换；token filters，则是进行同义场景替换，就是normalization过程中提到的那些。分词器则是我们最熟悉的，会把一句话按照规则进行切割。</p>
 <p>组件化带来的好处是，我们可以随意替换任何组件，或可以选取已有组件构成自己的解析器。</p>
-<h2><span id="选择已有组件组装analyzer">选择已有组件组装analyzer</span></h2><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">PUT my-index<span class="number">-000001</span></span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;analysis&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;analyzer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;my_custom_analyzer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;custom&quot;</span><span class="punctuation">,</span> </span><br><span class="line">          <span class="attr">&quot;tokenizer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;standard&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;char_filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="string">&quot;html_strip&quot;</span></span><br><span class="line">          <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="string">&quot;lowercase&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="string">&quot;asciifolding&quot;</span></span><br><span class="line">          <span class="punctuation">]</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">POST my-index<span class="number">-000001</span>/_analyze</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;analyzer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;my_custom_analyzer&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Is this &lt;b&gt;déjà vu&lt;/b&gt;?&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<h2 id="选择已有组件组装analyzer"><a href="#选择已有组件组装analyzer" class="headerlink" title="选择已有组件组装analyzer"></a>选择已有组件组装analyzer</h2><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">PUT my-index<span class="number">-000001</span></span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;analysis&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;analyzer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;my_custom_analyzer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;custom&quot;</span><span class="punctuation">,</span> </span><br><span class="line">          <span class="attr">&quot;tokenizer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;standard&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;char_filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="string">&quot;html_strip&quot;</span></span><br><span class="line">          <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="string">&quot;lowercase&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="string">&quot;asciifolding&quot;</span></span><br><span class="line">          <span class="punctuation">]</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">POST my-index<span class="number">-000001</span>/_analyze</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;analyzer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;my_custom_analyzer&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Is this &lt;b&gt;déjà vu&lt;/b&gt;?&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h2><span id="扩展已有组件">扩展已有组件</span></h2><h1><span id="es文本搜索的匹配逻辑">ES文本搜索的匹配逻辑</span></h1><p>ES的fetch and query流程很经典，值得单独起一篇去讲，这里完整叙述所占篇幅可能太大了。本篇blog只分析文本搜索涉及的相关性计算等逻辑。</p>
+<h2 id="扩展已有组件"><a href="#扩展已有组件" class="headerlink" title="扩展已有组件"></a>扩展已有组件</h2><h1 id="ES文本搜索的匹配逻辑"><a href="#ES文本搜索的匹配逻辑" class="headerlink" title="ES文本搜索的匹配逻辑"></a>ES文本搜索的匹配逻辑</h1><p>ES的fetch and query流程很经典，值得单独起一篇去讲，这里完整叙述所占篇幅可能太大了。本篇blog只分析文本搜索涉及的相关性计算等逻辑。</p>
 <p>fetch and query请求下发到了lucene节点，lucene引擎就需要根据搜索关键字进行相关性排序。一般来说，文本类搜索可能用到的关键字如下：</p>
-<h2><span id="match">match</span></h2><h2><span id="match_phrase">match_phrase</span></h2><h2><span id="match_phrase_prefix">match_phrase_prefix</span></h2><h2><span id="query_string">query_string</span></h2>
+<h2 id="match"><a href="#match" class="headerlink" title="match"></a>match</h2><h2 id="match-phrase"><a href="#match-phrase" class="headerlink" title="match_phrase"></a>match_phrase</h2><h2 id="match-phrase-prefix"><a href="#match-phrase-prefix" class="headerlink" title="match_phrase_prefix"></a>match_phrase_prefix</h2><h2 id="query-string"><a href="#query-string" class="headerlink" title="query_string"></a>query_string</h2>
                 
             </div>
             <hr/>
