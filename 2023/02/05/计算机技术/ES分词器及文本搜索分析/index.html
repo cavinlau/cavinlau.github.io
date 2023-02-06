@@ -5,8 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="ES分词器及文本搜索分析, clau&#39;s blog">
-    <meta name="description" content="[toc]
-前言工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好">
+    <meta name="description" content="前言工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好的优化搜索结">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -320,8 +319,7 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>[toc]</p>
-<h1><span id="前言">前言</span></h1><p>工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好的优化搜索结果，有时会想去搞个自定义分词器；同时也对文本搜索的细节感到好奇。</p>
+                <h1><span id="前言">前言</span></h1><p>工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好的优化搜索结果，有时会想去搞个自定义分词器；同时也对文本搜索的细节感到好奇。</p>
 <p>周末正好有空学习下，本篇blog，预计会对以下问题进行分析：</p>
 <ul>
 <li>我们搜索操作时，对于搜索引擎，流程分几步？</li>
@@ -366,8 +364,8 @@
 </blockquote>
 <p>上一步分词，已经排好了position还有起止偏移量，那么同义词怎么处理呢？</p>
 <p>很简单，直接多加一个token即可，偷两张官网的图：</p>
-<p><img src="D:\github\blog\source_posts\计算机技术\ES分词器及文本搜索分析\token-graph-qbf-synonym-ex.svg" alt="token-graph-qbf-synonym-ex"></p>
-<p><img src="D:\github\blog\source_posts\计算机技术\ES分词器及文本搜索分析\token-graph-dns-synonym-ex.svg" alt="token-graph-dns-synonym-ex"></p>
+<p><img src="/.%5CES%E5%88%86%E8%AF%8D%E5%99%A8%E5%8F%8A%E6%96%87%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%88%86%E6%9E%90%5Ctoken-graph-qbf-synonym-ex.svg" alt="token-graph-qbf-synonym-ex"></p>
+<p><img src="/.%5CES%E5%88%86%E8%AF%8D%E5%99%A8%E5%8F%8A%E6%96%87%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%88%86%E6%9E%90%5Ctoken-graph-dns-synonym-ex.svg" alt="token-graph-dns-synonym-ex"></p>
 <h1><span id="常见es分词器">常见ES分词器</span></h1><h2><span id="char_group">char_group</span></h2><p>两个参数比较重要：</p>
 <ul>
 <li>tokenize_on_chars：简单来说，就是分隔符</li>
