@@ -297,7 +297,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.7k
+                    2k
                 </div>
                 
 
@@ -314,12 +314,15 @@
         <hr class="clearfix">
 
         
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
 
         
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好的优化搜索结果，有时会想去搞个自定义分词器；同时也对文本搜索的细节感到好奇。</p>
+                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好的优化搜索结果，有时会想去搞个自定义分词器；同时也对文本搜索的细节感到好奇。</p>
 <p>周末正好有空学习下，本篇blog，预计会对以下问题进行分析：</p>
 <ul>
 <li>我们搜索操作时，对于搜索引擎，流程分几步？</li>
@@ -327,6 +330,11 @@
 <li>ES有哪些常见分词器？如何自定义？</li>
 <li>match&#x2F;match_phrase&#x2F;match_phrase_prefix&#x2F;query_string区别？</li>
 </ul>
+<br/>
+
+<hr>
+<br/>
+
 <h1 id="ES文本解析的执行流程"><a href="#ES文本解析的执行流程" class="headerlink" title="ES文本解析的执行流程"></a>ES文本解析的执行流程</h1><p>首先明确何时进行文本解析？有两个时机：</p>
 <ul>
 <li><p>文档往ES索引的时候</p>
@@ -341,7 +349,38 @@
 </blockquote>
 <p>很容易理解，就像程序编译需要先词法分析一样，分词打散再进行特征化处理是标准操作。</p>
 <p>那么，分词后的输出是啥？我以最简单的分词器举例，对<code>The QUICK brown-fox</code>，分词结果如下：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tokens&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;token&quot;</span><span class="punctuation">:</span> <span class="string">&quot;The&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span><span class="punctuation">:</span> <span class="number">3</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;word&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;position&quot;</span><span class="punctuation">:</span> <span class="number">0</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;token&quot;</span><span class="punctuation">:</span> <span class="string">&quot;QUICK&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span><span class="punctuation">:</span> <span class="number">4</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span><span class="punctuation">:</span> <span class="number">9</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;word&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;position&quot;</span><span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;token&quot;</span><span class="punctuation">:</span> <span class="string">&quot;brown&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span><span class="punctuation">:</span> <span class="number">10</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span><span class="punctuation">:</span> <span class="number">15</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;word&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;position&quot;</span><span class="punctuation">:</span> <span class="number">2</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;token&quot;</span><span class="punctuation">:</span> <span class="string">&quot;fox&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span><span class="punctuation">:</span> <span class="number">16</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span><span class="punctuation">:</span> <span class="number">19</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;word&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;position&quot;</span><span class="punctuation">:</span> <span class="number">3</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<pre class="language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"tokens"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">&#123;</span>
+      <span class="token property">"token"</span><span class="token operator">:</span> <span class="token string">"The"</span><span class="token punctuation">,</span>
+      <span class="token property">"start_offset"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+      <span class="token property">"end_offset"</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"word"</span><span class="token punctuation">,</span>
+      <span class="token property">"position"</span><span class="token operator">:</span> <span class="token number">0</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#123;</span>
+      <span class="token property">"token"</span><span class="token operator">:</span> <span class="token string">"QUICK"</span><span class="token punctuation">,</span>
+      <span class="token property">"start_offset"</span><span class="token operator">:</span> <span class="token number">4</span><span class="token punctuation">,</span>
+      <span class="token property">"end_offset"</span><span class="token operator">:</span> <span class="token number">9</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"word"</span><span class="token punctuation">,</span>
+      <span class="token property">"position"</span><span class="token operator">:</span> <span class="token number">1</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#123;</span>
+      <span class="token property">"token"</span><span class="token operator">:</span> <span class="token string">"brown"</span><span class="token punctuation">,</span>
+      <span class="token property">"start_offset"</span><span class="token operator">:</span> <span class="token number">10</span><span class="token punctuation">,</span>
+      <span class="token property">"end_offset"</span><span class="token operator">:</span> <span class="token number">15</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"word"</span><span class="token punctuation">,</span>
+      <span class="token property">"position"</span><span class="token operator">:</span> <span class="token number">2</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#123;</span>
+      <span class="token property">"token"</span><span class="token operator">:</span> <span class="token string">"fox"</span><span class="token punctuation">,</span>
+      <span class="token property">"start_offset"</span><span class="token operator">:</span> <span class="token number">16</span><span class="token punctuation">,</span>
+      <span class="token property">"end_offset"</span><span class="token operator">:</span> <span class="token number">19</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"word"</span><span class="token punctuation">,</span>
+      <span class="token property">"position"</span><span class="token operator">:</span> <span class="token number">3</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">&#125;</span></code></pre>
 
 
 
@@ -366,19 +405,35 @@
 <p>很简单，直接多加一个token即可，偷两张官网的图：</p>
 <p><img src="/.%5CES%E5%88%86%E8%AF%8D%E5%99%A8%E5%8F%8A%E6%96%87%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%88%86%E6%9E%90%5Ctoken-graph-qbf-synonym-ex.svg" alt="token-graph-qbf-synonym-ex"></p>
 <p><img src="/.%5CES%E5%88%86%E8%AF%8D%E5%99%A8%E5%8F%8A%E6%96%87%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%88%86%E6%9E%90%5Ctoken-graph-dns-synonym-ex.svg" alt="token-graph-dns-synonym-ex"></p>
+<br/>
+
+<hr>
+<br/>
+
 <h1 id="常见ES分词器"><a href="#常见ES分词器" class="headerlink" title="常见ES分词器"></a>常见ES分词器</h1><h2 id="char-group"><a href="#char-group" class="headerlink" title="char_group"></a>char_group</h2><p>两个参数比较重要：</p>
 <ul>
 <li>tokenize_on_chars：简单来说，就是分隔符</li>
 <li>max_token_length：最大长度，默认255，超过就会被split</li>
 </ul>
 <p>使用示例如下：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">POST _analyze</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tokenizer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;char_group&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;tokenize_on_chars&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="string">&quot;whitespace&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;-&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;\n&quot;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;The QUICK brown-fox&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<pre class="language-json" data-language="json"><code class="language-json">POST _analyze
+<span class="token punctuation">&#123;</span>
+  <span class="token property">"tokenizer"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"char_group"</span><span class="token punctuation">,</span>
+    <span class="token property">"tokenize_on_chars"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token string">"whitespace"</span><span class="token punctuation">,</span>
+      <span class="token string">"-"</span><span class="token punctuation">,</span>
+      <span class="token string">"\n"</span>
+    <span class="token punctuation">]</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"The QUICK brown-fox"</span>
+<span class="token punctuation">&#125;</span></code></pre>
 
 
 
 <h2 id="standard"><a href="#standard" class="headerlink" title="standard"></a>standard</h2><p> 默认分词器，按词切分。对于大部分语言都适用（中文不行，会单字切分）</p>
 <p>同样有max_token_length参数，这里不赘述了。例子直接看[ES官网]([Standard tokenizer | Elasticsearch Guide <a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-standard-tokenizer.html">8.6] | Elastic</a>)。</p>
-<h2 id="ik-smart-x2F-ik-max-word"><a href="#ik-smart-x2F-ik-max-word" class="headerlink" title="ik_smart&#x2F;ik_max_word"></a>ik_smart&#x2F;<strong>ik_max_word</strong></h2><p>这俩都是ik-analyzer这个解析器带的，是中文语境下最常用的分词器了。</p>
+<h2 id="ik-smart-x2F-ik-max-word"><a href="#ik-smart-x2F-ik-max-word" class="headerlink" title="ik_smart&#x2F;ik_max_word"></a>ik_smart&#x2F;ik_max_word</h2><p>这俩都是ik-analyzer这个解析器带的，是中文语境下最常用的分词器了。</p>
 <p>ik_smart会做最粗粒度的拆分；已被分出的词语将不会再次被其它词语占有，而与之相反的，ik_max_word会将文本做最细粒度的拆分；尽可能多的拆分出词语。</p>
 <p>挺抽象的，什么叫不能被其他词语占有呢？我拿<code>联想是全球最大的笔记本厂商</code> 举例：</p>
 <ul>
@@ -387,7 +442,15 @@
 </ul>
 <p>例如笔记本和本厂，由于<code>本</code> 已经被笔记本占有，所以不会再拆除本厂了。</p>
 <h2 id="path-hierarchy"><a href="#path-hierarchy" class="headerlink" title="path_hierarchy"></a>path_hierarchy</h2><p>这个在路径匹配场景非常好用，使用也非常简单：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 请求</span></span><br><span class="line">POST _analyze</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tokenizer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;path_hierarchy&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/one/two/three&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 响应</span></span><br><span class="line"><span class="punctuation">[</span> /one<span class="punctuation">,</span> /one/two<span class="punctuation">,</span> /one/two/three <span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+<pre class="language-json" data-language="json"><code class="language-json"><span class="token comment">// 请求</span>
+POST _analyze
+<span class="token punctuation">&#123;</span>
+  <span class="token property">"tokenizer"</span><span class="token operator">:</span> <span class="token string">"path_hierarchy"</span><span class="token punctuation">,</span>
+  <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"/one/two/three"</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 响应</span>
+<span class="token punctuation">[</span> /one<span class="token punctuation">,</span> /one/two<span class="token punctuation">,</span> /one/two/three <span class="token punctuation">]</span></code></pre>
 
 <p>主要参数有已下4个：</p>
 <ul>
@@ -397,24 +460,117 @@
 <li>skip：忽略打头的n个路径节点。</li>
 </ul>
 <p>举个栗子：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">PUT my_index</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;analysis&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;analyzer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;my_analyzer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;tokenizer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;my_tokenizer&quot;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;tokenizer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;my_tokenizer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;path_hierarchy&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;delimiter&quot;</span><span class="punctuation">:</span> <span class="string">&quot;-&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;replacement&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;skip&quot;</span><span class="punctuation">:</span> <span class="number">2</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 请求</span></span><br><span class="line">POST my_index/_analyze</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;analyzer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;my_analyzer&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;one-two-three-four-five&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 响应</span></span><br><span class="line"><span class="punctuation">[</span> /three<span class="punctuation">,</span> /three/four<span class="punctuation">,</span> /three/four/five <span class="punctuation">]</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<pre class="language-json" data-language="json"><code class="language-json">PUT my_index
+<span class="token punctuation">&#123;</span>
+  <span class="token property">"settings"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"analysis"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+      <span class="token property">"analyzer"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+        <span class="token property">"my_analyzer"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+          <span class="token property">"tokenizer"</span><span class="token operator">:</span> <span class="token string">"my_tokenizer"</span>
+        <span class="token punctuation">&#125;</span>
+      <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+      <span class="token property">"tokenizer"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+        <span class="token property">"my_tokenizer"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+          <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"path_hierarchy"</span><span class="token punctuation">,</span>
+          <span class="token property">"delimiter"</span><span class="token operator">:</span> <span class="token string">"-"</span><span class="token punctuation">,</span>
+          <span class="token property">"replacement"</span><span class="token operator">:</span> <span class="token string">"/"</span><span class="token punctuation">,</span>
+          <span class="token property">"skip"</span><span class="token operator">:</span> <span class="token number">2</span>
+        <span class="token punctuation">&#125;</span>
+      <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 请求</span>
+POST my_index/_analyze
+<span class="token punctuation">&#123;</span>
+  <span class="token property">"analyzer"</span><span class="token operator">:</span> <span class="token string">"my_analyzer"</span><span class="token punctuation">,</span>
+  <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"one-two-three-four-five"</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 响应</span>
+<span class="token punctuation">[</span> /three<span class="token punctuation">,</span> /three/four<span class="token punctuation">,</span> /three/four/five <span class="token punctuation">]</span>
+</code></pre>
 
 <p>如果reverse设置为true，则响应为：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">[</span> one/two/three/<span class="punctuation">,</span> two/three/<span class="punctuation">,</span> three/ <span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+<pre class="language-json" data-language="json"><code class="language-json"><span class="token punctuation">[</span> one/two/three/<span class="token punctuation">,</span> two/three/<span class="token punctuation">,</span> three/ <span class="token punctuation">]</span></code></pre>
 
 
 
+<p><br/><br/></p>
 <h1 id="如何自定义分词器"><a href="#如何自定义分词器" class="headerlink" title="如何自定义分词器"></a>如何自定义分词器</h1><p>先说一下，分词器这个词有些狭隘，应该是解析器，它包含了分词器组件，且允许0到多个。解析器分为三大组件：</p>
 <blockquote>
 <p>An <em>analyzer</em> — whether built-in or custom — is just a package which contains three lower-level building blocks: <em>character filters</em>, <em>tokenizers</em>, and <em>token filters</em>.</p>
 </blockquote>
 <p>character filters，负责字符级别的替换；token filters，则是进行同义场景替换，就是normalization过程中提到的那些。分词器则是我们最熟悉的，会把一句话按照规则进行切割。</p>
 <p>组件化带来的好处是，我们可以随意替换任何组件，或可以选取已有组件构成自己的解析器。</p>
-<h2 id="选择已有组件组装analyzer"><a href="#选择已有组件组装analyzer" class="headerlink" title="选择已有组件组装analyzer"></a>选择已有组件组装analyzer</h2><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">PUT my-index<span class="number">-000001</span></span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;analysis&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;analyzer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;my_custom_analyzer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;custom&quot;</span><span class="punctuation">,</span> </span><br><span class="line">          <span class="attr">&quot;tokenizer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;standard&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;char_filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="string">&quot;html_strip&quot;</span></span><br><span class="line">          <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="string">&quot;lowercase&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="string">&quot;asciifolding&quot;</span></span><br><span class="line">          <span class="punctuation">]</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line">POST my-index<span class="number">-000001</span>/_analyze</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;analyzer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;my_custom_analyzer&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Is this &lt;b&gt;déjà vu&lt;/b&gt;?&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<h2 id="选择已有组件组装analyzer"><a href="#选择已有组件组装analyzer" class="headerlink" title="选择已有组件组装analyzer"></a>选择已有组件组装analyzer</h2><pre class="language-json" data-language="json"><code class="language-json">PUT my-index<span class="token number">-000001</span>
+<span class="token punctuation">&#123;</span>
+  <span class="token property">"settings"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"analysis"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+      <span class="token property">"analyzer"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+        <span class="token property">"my_custom_analyzer"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+          <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"custom"</span><span class="token punctuation">,</span> 
+          <span class="token property">"tokenizer"</span><span class="token operator">:</span> <span class="token string">"standard"</span><span class="token punctuation">,</span>
+          <span class="token property">"char_filter"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+            <span class="token string">"html_strip"</span>
+          <span class="token punctuation">]</span><span class="token punctuation">,</span>
+          <span class="token property">"filter"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+            <span class="token string">"lowercase"</span><span class="token punctuation">,</span>
+            <span class="token string">"asciifolding"</span>
+          <span class="token punctuation">]</span>
+        <span class="token punctuation">&#125;</span>
+      <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
 
-<h2 id="扩展已有组件"><a href="#扩展已有组件" class="headerlink" title="扩展已有组件"></a>扩展已有组件</h2><h1 id="ES文本搜索的匹配逻辑"><a href="#ES文本搜索的匹配逻辑" class="headerlink" title="ES文本搜索的匹配逻辑"></a>ES文本搜索的匹配逻辑</h1><p>ES的fetch and query流程很经典，值得单独起一篇去讲，这里完整叙述所占篇幅可能太大了。本篇blog只分析文本搜索涉及的相关性计算等逻辑。</p>
-<p>fetch and query请求下发到了lucene节点，lucene引擎就需要根据搜索关键字进行相关性排序。一般来说，文本类搜索可能用到的关键字如下：</p>
-<h2 id="match"><a href="#match" class="headerlink" title="match"></a>match</h2><h2 id="match-phrase"><a href="#match-phrase" class="headerlink" title="match_phrase"></a>match_phrase</h2><h2 id="match-phrase-prefix"><a href="#match-phrase-prefix" class="headerlink" title="match_phrase_prefix"></a>match_phrase_prefix</h2><h2 id="query-string"><a href="#query-string" class="headerlink" title="query_string"></a>query_string</h2>
+POST my-index<span class="token number">-000001</span>/_analyze
+<span class="token punctuation">&#123;</span>
+  <span class="token property">"analyzer"</span><span class="token operator">:</span> <span class="token string">"my_custom_analyzer"</span><span class="token punctuation">,</span>
+  <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"Is this &lt;b>déjà vu&lt;/b>?"</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h2 id="扩展已有组件"><a href="#扩展已有组件" class="headerlink" title="扩展已有组件"></a>扩展已有组件</h2><br/>
+
+<hr>
+<br/>
+
+<h1 id="ES文本搜索的匹配逻辑"><a href="#ES文本搜索的匹配逻辑" class="headerlink" title="ES文本搜索的匹配逻辑"></a>ES文本搜索的匹配逻辑</h1><p>ES的fetch and query流程很经典，值得单独起一篇去讲，这里完整叙述所占篇幅可能太大了。本篇blog只分析文本搜索涉及的相关性计算等逻辑。query请求下发到了data节点后，lucene引擎就需要根据搜索关键字进行相关性排序。</p>
+<p>一般来说，文本类搜索可能用到的关键字有match、match_phrase、match_phrase_prefix、query_string。这里我尽可能简单去描述执行流程。</p>
+<h2 id="match"><a href="#match" class="headerlink" title="match"></a>match</h2><p>match进行文本搜索，是非常模糊的。默认参数下，它不关注分词出现个数，也不关注出现顺序。大体上执行流程如下：</p>
+<ul>
+<li>step-1: 将搜索输入进行分词。</li>
+<li>step-2: 查询倒排链，找出各分词所指向的文档。</li>
+<li>step-3: 计算匹配度，按score排序。</li>
+</ul>
+<h2 id="match-phrase"><a href="#match-phrase" class="headerlink" title="match_phrase"></a>match_phrase</h2><p>在使用默认参数的情况下，match_phrase的匹配非常严格。它要求包含所有分词，且顺序一致，且相邻(slop&#x3D;0，大于1则允许不相邻)。执行过程如下：</p>
+<ul>
+<li>step-1: 将搜索输入进行分词。</li>
+<li>step-2: 查询倒排链，找出各分词所指向的文档。</li>
+<li>step-3: 初筛，找到包含所有分词的文档。</li>
+<li>step-4: 复筛，找到经过n次移动位置后，能与搜索输入匹配上的文档(n&lt;&#x3D;slot)</li>
+</ul>
+<p>关于slot，什么是移动位置呢？可以参考下，图很简洁易懂：<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1862930">白话Elasticsearch18-深度探秘搜索技术之基于slop参数实现近似匹配</a></p>
+<h2 id="match-phrase-prefix"><a href="#match-phrase-prefix" class="headerlink" title="match_phrase_prefix"></a>match_phrase_prefix</h2><p>它的查询行为与 match_phrase 查询一致，但是它将查询字符串的最后一个词作为前缀(prefix)使用。</p>
+<h2 id="query-string"><a href="#query-string" class="headerlink" title="query_string"></a>query_string</h2><p>query_string搜索我认为非常灵活，它能帮助我们减少很多复合查询，比如要搜索name和content中，包含cavin或Lau，但不包含meituan的文档：</p>
+<pre class="language-none"><code class="language-none">&#123;
+  &quot;query&quot;: &#123;
+    &quot;query_string&quot;: &#123;
+      &quot;fields&quot;: [&quot;name&quot;,&quot;content&quot;],
+      &quot;query&quot;: &quot;cavin OR lau -meituan&quot;
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<ul>
+<li><code>+</code>：表示必须包含的单词。</li>
+<li><code>-</code>：表示必须排除的单词。</li>
+<li><code>AND</code>：表示两个单词都必须出现。</li>
+<li><code>OR</code>：表示两个单词至少有一个出现。</li>
+</ul>
+<p>不过要注意，假如我们query的是 <code>cavin lau meituan </code>，那么会变为 cavin or lau or meituan .</p>
+
                 
             </div>
             <hr/>
@@ -606,6 +762,9 @@
 <script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
 
 
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
 
 <!-- 代码语言 -->
 
@@ -648,8 +807,8 @@
             tocSelector: '#toc-content',
             contentSelector: '#articleContent',
             headingsOffset: -($(window).height() * 0.4 - 45),
-            collapseDepth: Number('0'),
-            headingSelector: 'h2, h3, h4'
+            collapseDepth: Number(''),
+            headingSelector: 'h1, h2, h3'
         });
 
         // Set scroll toc fixed.
