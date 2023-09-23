@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="ES分词器及文本搜索分析, clau&#39;s blog">
-    <meta name="description" content="hello">
+    <meta name="description" content="前言工作中所负责的系统，包含丰富的搜索场景，其中就包含对标题及详情等文本类型字段的检索。用户经常会反馈搜索后的回收结果不准确，作为研发，就会对分词器、ES搜索关键字等进行调整。效果有时是有的，但很多时候是按下葫芦起了瓢。为了更好的优化搜索结">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -330,11 +330,7 @@
 <li>ES有哪些常见分词器？如何自定义？</li>
 <li>match&#x2F;match_phrase&#x2F;match_phrase_prefix&#x2F;query_string区别？</li>
 </ul>
-<br/>
-
-<hr>
-<br/>
-
+<p><br/><br/></p>
 <h1 id="ES文本解析的执行流程"><a href="#ES文本解析的执行流程" class="headerlink" title="ES文本解析的执行流程"></a>ES文本解析的执行流程</h1><p>首先明确何时进行文本解析？有两个时机：</p>
 <ul>
 <li><p>文档往ES索引的时候</p>
@@ -405,11 +401,7 @@
 <p>很简单，直接多加一个token即可，偷两张官网的图：</p>
 <p><img src="/.%5CES%E5%88%86%E8%AF%8D%E5%99%A8%E5%8F%8A%E6%96%87%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%88%86%E6%9E%90%5Ctoken-graph-qbf-synonym-ex.svg" alt="token-graph-qbf-synonym-ex"></p>
 <p><img src="/.%5CES%E5%88%86%E8%AF%8D%E5%99%A8%E5%8F%8A%E6%96%87%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%88%86%E6%9E%90%5Ctoken-graph-dns-synonym-ex.svg" alt="token-graph-dns-synonym-ex"></p>
-<br/>
-
-<hr>
-<br/>
-
+<p><br/><br/></p>
 <h1 id="常见ES分词器"><a href="#常见ES分词器" class="headerlink" title="常见ES分词器"></a>常见ES分词器</h1><h2 id="char-group"><a href="#char-group" class="headerlink" title="char_group"></a>char_group</h2><p>两个参数比较重要：</p>
 <ul>
 <li>tokenize_on_chars：简单来说，就是分隔符</li>
@@ -531,11 +523,7 @@ POST my-index<span class="token number">-000001</span>/_analyze
   <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"Is this &lt;b>déjà vu&lt;/b>?"</span>
 <span class="token punctuation">&#125;</span></code></pre>
 
-<h2 id="扩展已有组件"><a href="#扩展已有组件" class="headerlink" title="扩展已有组件"></a>扩展已有组件</h2><br/>
-
-<hr>
-<br/>
-
+<h2 id="扩展已有组件"><a href="#扩展已有组件" class="headerlink" title="扩展已有组件"></a>扩展已有组件</h2><p><br/><br/></p>
 <h1 id="ES文本搜索的匹配逻辑"><a href="#ES文本搜索的匹配逻辑" class="headerlink" title="ES文本搜索的匹配逻辑"></a>ES文本搜索的匹配逻辑</h1><p>ES的fetch and query流程很经典，值得单独起一篇去讲，这里完整叙述所占篇幅可能太大了。本篇blog只分析文本搜索涉及的相关性计算等逻辑。query请求下发到了data节点后，lucene引擎就需要根据搜索关键字进行相关性排序。</p>
 <p>一般来说，文本类搜索可能用到的关键字有match、match_phrase、match_phrase_prefix、query_string。这里我尽可能简单去描述执行流程。</p>
 <h2 id="match"><a href="#match" class="headerlink" title="match"></a>match</h2><p>match进行文本搜索，是非常模糊的。默认参数下，它不关注分词出现个数，也不关注出现顺序。大体上执行流程如下：</p>
@@ -677,30 +665,29 @@ POST my-index<span class="token number">-000001</span>/_analyze
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;本篇
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2023/02/05/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%8A%80%E6%9C%AF/ES%E5%88%86%E8%AF%8D%E5%99%A8%E5%8F%8A%E6%96%87%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%88%86%E6%9E%90/">
+                <a href="/2023/02/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%8A%80%E6%9C%AF/%E6%85%A2SQL%E8%AF%A5%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%EF%BC%9F/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/20.jpg" class="responsive-img" alt="ES分词器及文本搜索分析">
+                        <img src="/medias/featureimages/19.jpg" class="responsive-img" alt="慢SQL该如何优化？">
                         
-                        <span class="card-title">ES分词器及文本搜索分析</span>
+                        <span class="card-title">慢SQL该如何优化？</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            hello
+                            
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2023-02-05
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-02-07
+                        </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -709,7 +696,6 @@ POST my-index<span class="token number">-000001</span>/_analyze
                         </span>
                     </div>
                 </div>
-
                 
             </div>
         </div>

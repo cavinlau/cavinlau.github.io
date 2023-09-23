@@ -4,8 +4,8 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="just a test, clau&#39;s blog">
-    <meta name="description" content="">
+    <meta name="keywords" content="慢SQL该如何优化？, clau&#39;s blog">
+    <meta name="description" content="最近在负责组里的慢SQL优化。不得不说，美团的rds平台的分析能力非常智能，在自动分析慢SQL占比的基础上，能够推给你改进方案，例如索引生成的DDL，真正做到SQL优化有手就行。但作为一名RD，知晓SQL优化的策略还是很有必要的，一是系统智">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -17,7 +17,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>just a test | clau&#39;s blog</title>
+    <title>慢SQL该如何优化？ | clau&#39;s blog</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
 
@@ -247,12 +247,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/21.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/19.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">just a test</h1>
+                    <h1 class="description center-align post-title">慢SQL该如何优化？</h1>
                 </div>
             </div>
         </div>
@@ -288,7 +288,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2023-02-03
+                    2023-02-07
                 </div>
                 
 
@@ -297,7 +297,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    0
+                    644
                 </div>
                 
 
@@ -322,7 +322,50 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                
+                <p>最近在负责组里的慢SQL优化。不得不说，美团的rds平台的分析能力非常智能，在自动分析慢SQL占比的基础上，能够推给你改进方案，例如索引生成的DDL，真正做到SQL优化有手就行。但作为一名RD，知晓SQL优化的策略还是很有必要的，一是系统智能推荐的方案不一定最符合业务，二是离开了平台，解决问题的能力还要有的。所以，我希望结合平时工作中遇到的问题，记录并完善排查慢SQL的思路。</p>
+<h1 id="慢SQL排查思路"><a href="#慢SQL排查思路" class="headerlink" title="慢SQL排查思路"></a>慢SQL排查思路</h1><h2 id="慢SQL日志记录"><a href="#慢SQL日志记录" class="headerlink" title="慢SQL日志记录"></a>慢SQL日志记录</h2><p>开启慢SQL日志，只要3个配置，分别是日志开关、日志文件名称、慢SQL判定阈值。</p>
+<pre class="language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">show</span> variables <span class="token operator">like</span> <span class="token string">'slow_query_log'</span>
+<span class="token keyword">show</span> variables <span class="token operator">like</span> <span class="token string">'slow_query_llog_file'</span>
+<span class="token keyword">show</span> variables <span class="token operator">like</span> <span class="token string">'long_query_time'</span></code></pre>
+
+<p>拿到了慢SQL，下一步我们要分析它为啥那么慢</p>
+<h2 id="慢SQL执行计划分析"><a href="#慢SQL执行计划分析" class="headerlink" title="慢SQL执行计划分析"></a>慢SQL执行计划分析</h2><p>首先，关于EXPLAIN：</p>
+<blockquote>
+<p>The <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/explain.html"><code>EXPLAIN</code></a> statement provides information about how MySQL executes statements. <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/explain.html"><code>EXPLAIN</code></a> works with <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/select.html"><code>SELECT</code></a>, <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/delete.html"><code>DELETE</code></a>, <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/insert.html"><code>INSERT</code></a>, <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/replace.html"><code>REPLACE</code></a>, and <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/update.html"><code>UPDATE</code></a> statements.</p>
+</blockquote>
+<p>在待执行的SQL前加上EXPLAIN，就能看到分析结果。我一般关注type、key和rows这三个列信息。</p>
+<h3 id="type"><a href="#type" class="headerlink" title="type"></a>type</h3><p>这个字段我是会首先看的，它会告诉我们查询走了索引还是全表扫；即使走了索引，是否发生了全索引扫描。</p>
+<p>我一开始对type的理解是有歧义的，之前一直以为type是描述{如何使用索引的}，但实际上是描述{表是如何被joined的}。</p>
+<blockquote>
+<p>The <code>type</code> column of <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/explain.html"><code>EXPLAIN</code></a> output describes how tables are joined.</p>
+</blockquote>
+<p>常见的type有以下几种，性能从好到坏顺序依次为：</p>
+<ul>
+<li><p>const</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#jointype_const"><code>const</code></a> is used when you compare all parts of a <code>PRIMARY KEY</code> or <code>UNIQUE</code> index to constant values.</p>
+</blockquote>
+<p>也就是当命中主键索引或唯一索引，且查询条件是特定值（非范围值或模糊匹配）时，可认为是被查询的表是const table。</p>
+</li>
+<li><p>eq_ref</p>
+<blockquote>
+<p>One row is read from this table for each combination of rows from the previous tables.</p>
+</blockquote>
+<p>比较难理解，其实就是两张表通过主键或唯一索引进行等值联接。这样表a的任意一行，只对应表b的一行。MySQL可以使用eq_ref联接来处理ref_table。</p>
+</li>
+<li><p>ref</p>
+<p>这个可以说是最常见的type了。</p>
+<p>在单表查询的场景下，他表示搜索用到了普通索引（非唯一索引）。也就是可能会扫描好几行。</p>
+<p>在联表查询的场景下，它表示表a的任意一行，会访问表b命中索引的若干行。</p>
+</li>
+<li><p>range</p>
+</li>
+<li><p>index</p>
+</li>
+<li><p>ALL</p>
+</li>
+</ul>
+<h1 id="慢查询排查案例"><a href="#慢查询排查案例" class="headerlink" title="慢查询排查案例"></a>慢查询排查案例</h1>
                 
             </div>
             <hr/>
@@ -348,7 +391,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="https://clau224.github.io/2023/02/03/just-a-test/">https://clau224.github.io/2023/02/03/just-a-test/</a>
+                    <a href="https://clau224.github.io/2023/02/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%8A%80%E6%9C%AF/%E6%85%A2SQL%E8%AF%A5%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%EF%BC%9F/">https://clau224.github.io/2023/02/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%8A%80%E6%9C%AF/%E6%85%A2SQL%E8%AF%A5%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%EF%BC%9F/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -429,9 +472,48 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
+            <div class="card">
+                <a href="/2023/02/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%8A%80%E6%9C%AF/%E6%85%A2SQL%E8%AF%A5%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%EF%BC%9F/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/19.jpg" class="responsive-img" alt="慢SQL该如何优化？">
+                        
+                        <span class="card-title">慢SQL该如何优化？</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2023-02-07
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            Cavin Lau
+                            
+                        </span>
+                    </div>
+                </div>
+
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
             <div class="card">
                 <a href="/2023/02/05/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%8A%80%E6%9C%AF/ES%E5%88%86%E8%AF%8D%E5%99%A8%E5%8F%8A%E6%96%87%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%88%86%E6%9E%90/">
                     <div class="card-image">
@@ -449,45 +531,8 @@
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2023-02-05
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-user fa-fw"></i>
-                            Cavin Lau
-                            
-                        </span>
-                    </div>
-                </div>
-                
-            </div>
-        </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/2023/02/03/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87blog/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="/medias/featureimages/2.jpg" class="responsive-img" alt="我的第一篇blog">
-                        
-                        <span class="card-title">我的第一篇blog</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            
-                        
-                    </div>
-                    <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2023-02-03
+                                <i class="far fa-clock fa-fw icon-date"></i>2023-02-05
                             </span>
                         <span class="publish-author">
                             
